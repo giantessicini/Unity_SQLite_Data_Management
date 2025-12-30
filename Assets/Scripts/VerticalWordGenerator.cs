@@ -6,7 +6,7 @@ using System.Collections;
 
 public class VerticalWordGenerator : MonoBehaviour
 {
-    [SerializeField] private List<TextMeshProUGUI> outputTexts;
+    [SerializeField] private List<UIWord> outputTexts;
     [SerializeField] private TMP_InputField inputField;
     SQLiteConnection db;
 
@@ -95,7 +95,7 @@ public class VerticalWordGenerator : MonoBehaviour
 
     IEnumerator TextRevealAnimation(List<string> foundWords, int charIndex)
     {
-        if (outputTexts[0].text != "")
+        if (outputTexts[0].wordText.text != "")
         {
             foreach (var text in outputTexts)
             {
@@ -119,7 +119,12 @@ public class VerticalWordGenerator : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             string word = foundWords[i].ToUpper();
-            outputTexts[i].text = ColorCharAtIndex(word, charIndex, "00FF00");
+            outputTexts[i].wordText.text = ColorCharAtIndex(word, charIndex, "00FF00");
+
+            outputTexts[i].description = db.ExecuteScalar<string>(
+            @"SELECT description FROM words WHERE UPPER(word) = ? LIMIT 1",
+            word
+        );
         }
 
         foreach (var text in outputTexts)
