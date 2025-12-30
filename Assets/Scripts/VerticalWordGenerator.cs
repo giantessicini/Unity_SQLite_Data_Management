@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using SQLite;
 using TMPro;
+using System.Collections;
 
 public class VerticalWordGenerator : MonoBehaviour
 {
@@ -65,13 +66,10 @@ public class VerticalWordGenerator : MonoBehaviour
             // Success for this index
             if (!failed)
             {
-                for (int i = 0; i < 5; i++)
-                {
-                    string word = foundWords[i].ToUpper();
-                    outputTexts[i].text = ColorCharAtIndex(word, charIndex, "00FF00");
-                }
+                StartCoroutine(TextRevealAnimation(foundWords, charIndex));
 
                 Debug.Log($"Success using character index {charIndex}");
+
                 return;
             }
         }
@@ -87,6 +85,49 @@ public class VerticalWordGenerator : MonoBehaviour
         return word.Substring(0, index)
             + $"<color=#{colorHex}>{word[index]}</color>"
             + word.Substring(index + 1);
+    }
+
+    [SerializeField] private LeanTweenType leanTweenType;
+    [SerializeField] private float animationDelay = 0.5f;
+    [SerializeField] private float animationWordDelay = 0.5f;
+    [SerializeField] private float animationInitialScale = 0.8f;
+    [SerializeField] private float animationWordDuration = 0.25f;
+
+    IEnumerator TextRevealAnimation(List<string> foundWords, int charIndex)
+    {
+        if (outputTexts[0].text != "")
+        {
+            foreach (var text in outputTexts)
+            {
+                LeanTween.scale(text.gameObject, Vector3.one * animationInitialScale, animationWordDuration).setEase(leanTweenType).setOnComplete(() =>
+                {
+                    text.transform.localScale = Vector3.zero;
+                });
+                yield return new WaitForSeconds(animationWordDelay);
+            }
+        }
+        else
+        {
+            foreach (var text in outputTexts)
+            {
+                text.transform.localScale = Vector3.zero;
+            }
+        }
+
+        yield return new WaitForSeconds(animationDelay);
+
+        for (int i = 0; i < 5; i++)
+        {
+            string word = foundWords[i].ToUpper();
+            outputTexts[i].text = ColorCharAtIndex(word, charIndex, "00FF00");
+        }
+
+        foreach (var text in outputTexts)
+        {
+            text.transform.localScale = Vector3.one * animationInitialScale;
+            LeanTween.scale(text.gameObject, Vector3.one, animationWordDuration).setEase(leanTweenType);
+            yield return new WaitForSeconds(animationWordDelay);
+        }
     }
 
     void OnDestroy()
