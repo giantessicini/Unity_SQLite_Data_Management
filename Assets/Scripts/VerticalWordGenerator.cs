@@ -25,8 +25,16 @@ public class VerticalWordGenerator : MonoBehaviour
             return;
         }
 
-        // Try each character index (0–4)
-        for (int charIndex = 0; charIndex < 5; charIndex++)
+        List<int> indices = new List<int> { 0, 1, 2, 3, 4 };
+
+        // Fisher–Yates shuffle
+        for (int i = indices.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (indices[i], indices[j]) = (indices[j], indices[i]);
+        }
+
+        foreach (int charIndex in indices)
         {
             List<string> foundWords = new List<string>();
             bool failed = false;
@@ -59,7 +67,8 @@ public class VerticalWordGenerator : MonoBehaviour
             {
                 for (int i = 0; i < 5; i++)
                 {
-                    outputTexts[i].text = foundWords[i].ToUpper();
+                    string word = foundWords[i].ToUpper();
+                    outputTexts[i].text = ColorCharAtIndex(word, charIndex, "00FF00");
                 }
 
                 Debug.Log($"Success using character index {charIndex}");
@@ -68,6 +77,16 @@ public class VerticalWordGenerator : MonoBehaviour
         }
 
         Debug.LogError("No valid vertical arrangement found for input word.");
+    }
+
+    string ColorCharAtIndex(string word, int index, string colorHex)
+    {
+        if (index < 0 || index >= word.Length)
+            return word;
+
+        return word.Substring(0, index)
+            + $"<color=#{colorHex}>{word[index]}</color>"
+            + word.Substring(index + 1);
     }
 
     void OnDestroy()
